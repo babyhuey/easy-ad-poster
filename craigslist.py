@@ -16,6 +16,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.common import action_chains, keys
+from selenium.webdriver.common.keys import Keys
+
 
 
 from pyvirtualdisplay import Display
@@ -55,9 +57,12 @@ class craigslistBot:
         self.paintColor = color
         self.size = size
         self.transmission = transmission
+        self.titleStatus = titleStatus
         self.type = carType
         self.modelYear = modelYear
         self.makeAndModel = makeAndModel
+
+        self.chains = webdriver.ActionChains(self.client)
 
 
     def login(self):
@@ -76,6 +81,12 @@ class craigslistBot:
             return
         self.debug("Logged in")
         self.isLoggedIn = True
+
+    def dropdown(self, menu, keys):
+        self.chains.click(menu).send_keys(keys).send_keys(Keys.ENTER).perform()
+        self.chains.reset_actions()
+        time.sleep(self.waitTime)
+
 
     def createPost(self):
         if not self.isLoggedIn:
@@ -106,6 +117,7 @@ class craigslistBot:
         time.sleep(self.waitTime)
         self.client.find_element_by_css_selector("#postal_code").send_keys(self.postCode)
         time.sleep(self.waitTime)
+        self.debug("Setting options")
         if self.vin is not None:
             self.client.find_element_by_xpath("//input[@name='auto_vin']").send_keys(self.vin)
             time.sleep(self.waitTime)
@@ -115,12 +127,41 @@ class craigslistBot:
         self.client.find_element_by_xpath("//input[@name='auto_make_model']").send_keys(self.makeAndModel)
         time.sleep(self.waitTime)
         if self.condition is not None:
-            self.client.find_element_by_xpath("//label[contains(@class, 'condition')]//option['like new']").click()
-            select = Select(self.client.find_element_by_xpath("//select[contains(@id, 'ui-id-3')]"))
-            WebDriverWait(self.client, timeout=10).until(EC.element_to_be_clickable((By.XPATH, "//select['contains(@name=condition')]//option['like new']")))
-            select.select_by_visible_text(self.condition)
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'condition')]")
+            if self.condition == "like new":
+                self.dropdown(menu, 'like')
+            else:
+                self.dropdown(menu, self.condition)
+        if self.cylinders is not None:
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'cylinders')]")
+            self.dropdown(menu, self.cylinders)
 
-            select.selec
+        if self.drive is not None:
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'drive')]")
+            self.dropdown(menu, self.drive)
+        #Set Fuel -- Required
+        menu = self.client.find_element_by_xpath("//label[contains(@class, 'fuel')]")
+        self.dropdown(menu, self.fuel)
+        if self.paintColor is not None:
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'color')]")
+            self.dropdown(menu, self.paintColor)
+        if self.size is not None:
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'size')]")
+            self.dropdown(menu, self.size)
+        ## Set Title Status -- Required
+        menu = self.client.find_element_by_xpath("//label[contains(@class, 'title')]")
+        self.chains.click(menu).send_keys(self.titleStatus).send_keys(Keys.ENTER).perform()
+        time.sleep(self.waitTime)
+        ## Set Transmission type -- Required
+        menu = self.client.find_element_by_xpath("//label[contains(@class, 'transmission')]")
+        self.dropdown(menu, self.transmission)
+        if self.type is not None:
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'type')]")
+            self.dropdown(menu, self.type)
+        ## Set Model Year -- Required
+        menu = self.client.find_element_by_xpath("//label[contains(@class, 'year')]")
+        self.dropdown(menu, self.modelYear)
+
         # self.debug("Checking 'Okay to contact by phone'")
         # self.client.find_element_by_css_selector("#contact_phone_ok").click()
         # time.sleep(self.waitTime)
