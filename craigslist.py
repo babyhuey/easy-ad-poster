@@ -10,6 +10,8 @@ import time
 
 from selenium import webdriver
 
+import yaml
+
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.common.by import By
@@ -18,7 +20,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.common import action_chains, keys
 from selenium.webdriver.common.keys import Keys
 
-from pyvirtualdisplay import Display
+# from pyvirtualdisplay import Display
 
 
 class craigslistBot:
@@ -27,37 +29,39 @@ class craigslistBot:
 
     def __init__(self, loginEmail="", loginPass="", contactNumber="", contactName="", postTitle="", postCode="",
                  postContentFile="", price="", waitTime=10):
-        self.display = ""
+        # self.display = ""
 
-        if not os.name == 'nt':
-            self.display = Display(visible=0, size=(800, 600))
-            self.display.start()
-
+        # if not os.name == 'nt':
+        #     self.display = Display(visible=0, size=(800, 600))
+        #     self.display.start()
+        #
         # self.client = webdriver.Firefox()
+        with open('config.yaml') as fp:
+            data = yaml.load(fp)
+        self.waitTime = 1
         self.client = webdriver.Chrome()
         self.isLoggedIn = False
-        self.loginEmail = loginEmail
-        self.loginPass = loginPass
-        self.contactNumber = contactNumber
-        self.contactName = contactName
-        self.postTitle = postTitle
-        self.postCode = postCode
-        self.postContent = postContentFile
-        self.waitTime = waitTime
-        self.price = price
-        self.odometer = odometer
-        self.vin = vin
-        self.condition = condition
-        self.cylinders = cylinders
-        self.fuel = fuel
-        self.drive = drive
-        self.paintColor = color
-        self.size = size
-        self.transmission = transmission
-        self.titleStatus = titleStatus
-        self.type = carType
-        self.modelYear = modelYear
-        self.makeAndModel = makeAndModel
+        self.loginEmail = data['clistLoginEmail']
+        self.loginPass = data['clistLoginPassword']
+        self.contactNumber = data['contactNumber']
+        self.contactName = data['contactName']
+        self.postTitle = data['postTitle']
+        self.postCode = data['postCode']
+        self.postContent = data['postContent']
+        self.price = data['price']
+        self.odometer = data['odometer']
+        self.vin = data['vin']
+        self.condition = data['condition']
+        self.cylinders = data['cylinders']
+        self.fuel = data['fuel']
+        self.drive = data['drive']
+        self.paintColor = data['color']
+        self.size = data['size']
+        self.transmission = data['transmission']
+        self.titleStatus = data['titleStatus']
+        self.type = data['carType']
+        self.modelYear = data['modelYear']
+        self.makeAndModel = data['makeAndModel']
 
         self.chains = webdriver.ActionChains(self.client)
 
@@ -84,8 +88,8 @@ class craigslistBot:
         time.sleep(self.waitTime)
 
     def createPost(self):
-        if not self.isLoggedIn:
-            return 0
+        # if not self.isLoggedIn:
+        #     return 0
 
         self.debug("Navigating to post page")
         self.client.get("http://post.craigslist.org/c/ral")
@@ -138,25 +142,25 @@ class craigslistBot:
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'fuel')]")
         self.dropdown(menu, self.fuel)
         if self.paintColor is not None:
-            menu = self.client.find_element_by_xpath("//label[contains(@class, 'color')]")
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'paint')]")
             self.dropdown(menu, self.paintColor)
         if self.size is not None:
             menu = self.client.find_element_by_xpath("//label[contains(@class, 'size')]")
             self.dropdown(menu, self.size)
         # Set Title Status -- Required
-        menu = self.client.find_element_by_xpath("//label[contains(@class, 'title')]")
-        self.chains.click(menu).send_keys(self.titleStatus).send_keys(Keys.ENTER).perform()
-        time.sleep(self.waitTime)
+        menu = self.client.find_element_by_xpath("//label[contains(@class, 'auto_title_status')]")
+        self.dropdown(menu, self.titleStatus)
         # Set Transmission type -- Required
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'transmission')]")
         self.dropdown(menu, self.transmission)
         if self.type is not None:
-            menu = self.client.find_element_by_xpath("//label[contains(@class, 'type')]")
+            menu = self.client.find_element_by_xpath("//label[contains(@class, 'auto_bodytype')]")
             self.dropdown(menu, self.type)
         # Set Model Year -- Required
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'year')]")
         self.dropdown(menu, self.modelYear)
 
+        time.sleep(20)
         # self.debug("Checking 'Okay to contact by phone'")
         # self.client.find_element_by_css_selector("#contact_phone_ok").click()
         # time.sleep(self.waitTime)
@@ -210,13 +214,12 @@ class craigslistBot:
     #     time.sleep(10)
 
 
-def main(loginEmail, loginPass, contactNumber, contactName, postTitle, postCode, postContentFile, waitTime):
+def main():
     startExecTime = time.time()
 
-    clBot = craigslistBot(loginEmail, loginPass, contactNumber, contactName, postTitle, postCode, postContentFile,
-                          waitTime)
-    clBot.login()
-    # clBot.createPost()
+    clBot = craigslistBot()
+    # clBot.login()
+    clBot.createPost()
     endExecTime = time.time()
     clBot.debug("Execution time: %s seconds" % int(endExecTime - startExecTime))
 
@@ -225,15 +228,16 @@ def main(loginEmail, loginPass, contactNumber, contactName, postTitle, postCode,
     return 0
 
 
-parser = argparse.ArgumentParser(description="Craigslist Poster Script")
-parser.add_argument('loginEmail', metavar='LOGINEMAIL', type=str, help='Email to use for login')
-parser.add_argument('loginPass', metavar='LOGINPASS', type=str, help='Password to use for login')
-parser.add_argument('contactNumber', metavar='CONTACTNUM', type=str, help='Contact number for post')
-parser.add_argument('contactName', metavar='CONTACTNAME', type=str, help='Contact name for post')
-parser.add_argument('postTitle', metavar='POSTTITLE', type=str, help='Title of the post to be made')
-parser.add_argument('postCode', metavar='POSTCODE', type=str, help='Zip code for post')
-parser.add_argument('postContent', metavar='POSTCONTENT', type=str, help='Path to file for post content')
-parser.add_argument('waitTime', metavar='WAITTIME', type=int, help='Time to wait in between actions (Recommend 3)')
-args = parser.parse_args()
-main(args.loginEmail, args.loginPass, args.contactNumber, args.contactName, args.postTitle, args.postCode,
-     args.postContent, args.waitTime)
+# parser = argparse.ArgumentParser(description="Craigslist Poster Script")
+# parser.add_argument('loginEmail', metavar='LOGINEMAIL', type=str, help='Email to use for login')
+# parser.add_argument('loginPass', metavar='LOGINPASS', type=str, help='Password to use for login')
+# parser.add_argument('contactNumber', metavar='CONTACTNUM', type=str, help='Contact number for post')
+# parser.add_argument('contactName', metavar='CONTACTNAME', type=str, help='Contact name for post')
+# parser.add_argument('postTitle', metavar='POSTTITLE', type=str, help='Title of the post to be made')
+# parser.add_argument('postCode', metavar='POSTCODE', type=str, help='Zip code for post')
+# parser.add_argument('postContent', metavar='POSTCONTENT', type=str, help='Path to file for post content')
+# parser.add_argument('waitTime', metavar='WAITTIME', type=int, help='Time to wait in between actions (Recommend 3)')
+# args = parser.parse_args()
+# main(args.loginEmail, args.loginPass, args.contactNumber, args.contactName, args.postTitle, args.postCode,
+#      args.postContent, args.waitTime)
+main()
