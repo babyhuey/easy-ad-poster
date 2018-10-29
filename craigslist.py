@@ -18,10 +18,7 @@ from selenium.webdriver.support.select import Select
 from selenium.webdriver.common import action_chains, keys
 from selenium.webdriver.common.keys import Keys
 
-
-
 from pyvirtualdisplay import Display
-
 
 
 class craigslistBot:
@@ -64,7 +61,6 @@ class craigslistBot:
 
         self.chains = webdriver.ActionChains(self.client)
 
-
     def login(self):
         self.debug("Navigating to craigslist login")
         self.client.get("https://accounts.craigslist.org/login")
@@ -86,7 +82,6 @@ class craigslistBot:
         self.chains.click(menu).send_keys(keys).send_keys(Keys.ENTER).perform()
         self.chains.reset_actions()
         time.sleep(self.waitTime)
-
 
     def createPost(self):
         if not self.isLoggedIn:
@@ -139,7 +134,7 @@ class craigslistBot:
         if self.drive is not None:
             menu = self.client.find_element_by_xpath("//label[contains(@class, 'drive')]")
             self.dropdown(menu, self.drive)
-        #Set Fuel -- Required
+        # Set Fuel -- Required
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'fuel')]")
         self.dropdown(menu, self.fuel)
         if self.paintColor is not None:
@@ -148,17 +143,17 @@ class craigslistBot:
         if self.size is not None:
             menu = self.client.find_element_by_xpath("//label[contains(@class, 'size')]")
             self.dropdown(menu, self.size)
-        ## Set Title Status -- Required
+        # Set Title Status -- Required
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'title')]")
         self.chains.click(menu).send_keys(self.titleStatus).send_keys(Keys.ENTER).perform()
         time.sleep(self.waitTime)
-        ## Set Transmission type -- Required
+        # Set Transmission type -- Required
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'transmission')]")
         self.dropdown(menu, self.transmission)
         if self.type is not None:
             menu = self.client.find_element_by_xpath("//label[contains(@class, 'type')]")
             self.dropdown(menu, self.type)
-        ## Set Model Year -- Required
+        # Set Model Year -- Required
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'year')]")
         self.dropdown(menu, self.modelYear)
 
