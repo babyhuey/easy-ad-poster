@@ -38,7 +38,7 @@ class craigslistBot:
         # self.client = webdriver.Firefox()
         with open('config.yaml') as fp:
             data = yaml.load(fp)
-        self.waitTime = 1
+        self.waitTime = 0
         self.client = webdriver.Chrome()
         self.isLoggedIn = False
         self.loginEmail = data['clistLoginEmail']
@@ -159,6 +159,8 @@ class craigslistBot:
         # Set Model Year -- Required
         menu = self.client.find_element_by_xpath("//label[contains(@class, 'year')]")
         self.dropdown(menu, self.modelYear)
+        self.client.find_element_by_css_selector("#PostingBody").send_keys(self.postContent)
+        self.client.find_element_by_css_selector('button[value="continue"]').click()
 
         time.sleep(20)
         # self.debug("Checking 'Okay to contact by phone'")
@@ -228,16 +230,4 @@ def main():
     return 0
 
 
-# parser = argparse.ArgumentParser(description="Craigslist Poster Script")
-# parser.add_argument('loginEmail', metavar='LOGINEMAIL', type=str, help='Email to use for login')
-# parser.add_argument('loginPass', metavar='LOGINPASS', type=str, help='Password to use for login')
-# parser.add_argument('contactNumber', metavar='CONTACTNUM', type=str, help='Contact number for post')
-# parser.add_argument('contactName', metavar='CONTACTNAME', type=str, help='Contact name for post')
-# parser.add_argument('postTitle', metavar='POSTTITLE', type=str, help='Title of the post to be made')
-# parser.add_argument('postCode', metavar='POSTCODE', type=str, help='Zip code for post')
-# parser.add_argument('postContent', metavar='POSTCONTENT', type=str, help='Path to file for post content')
-# parser.add_argument('waitTime', metavar='WAITTIME', type=int, help='Time to wait in between actions (Recommend 3)')
-# args = parser.parse_args()
-# main(args.loginEmail, args.loginPass, args.contactNumber, args.contactName, args.postTitle, args.postCode,
-#      args.postContent, args.waitTime)
 main()
